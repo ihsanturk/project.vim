@@ -2,7 +2,12 @@
 " Mail: ihsanl at pm dot me
 " Last Change: 2020 Jul 03 14:54:20, @1593777244
 
-" Limitations: user can't create a project named: "new"
+" Limitation1: user can't create a project named: "new"
+"
+" Fix for Limitation1:
+" TODO: Make first argument as a command and complete with other commands like
+" new,rename,cd,delete, check this link for argument specific completions:
+" https://stackoverflow.com/questions/6937984/is-there-a-way-to-make-use-of-two-custom-complete-functions-in-vimscript
 
 let g:projectdir = '~/project/'
 
