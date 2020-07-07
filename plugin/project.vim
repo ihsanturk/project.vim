@@ -42,8 +42,17 @@ func! s:cmd(...) abort
 				call s:projectnew(l:projectname)
 			end
 		end
-		call s:projectcd(l:projectname)
+		if s:projectexists(l:projectname)
+			call s:projectcd(l:projectname)
+		else
+			call s:warn(
+				\ 'project: no such project: '.l:projectname.'. try creating new.')
+		end
 	end
+endf
+
+func! s:projectexists(projectname)
+	return isdirectory(s:projectexpand(a:projectname))
 endf
 
 func! s:projectnew(projectname, ...) " a:1 is templatekind
