@@ -1,15 +1,6 @@
 " Maintainer: ihsan
 " Mail: ihsanl at pm dot me
-" Last Change: 2020 Jul 03 14:54:20, @1593777244
-
-" DONE: Open a project form URL.
-" (added at: @1594212351) (done at: @1594289682) (took: 21 hours)
-
-" Limitation1: user can't create a project named: "new"
-" Fix for Limitation1:
-" TODO: Make first argument as a command and complete with other commands like
-" new,rename,cd,delete, check this link for argument specific completions:
-" https://stackoverflow.com/questions/6937984/is-there-a-way-to-make-use-of-two-custom-complete-functions-in-vimscript
+" Last Change: 2020 Jul 09 16:29:35, @1594301382
 
 let g:projectdir = '~/project/' " FIXME: use get() function
 let g:projectexternaldir = '~/project/other/' " FIXME: use get() function
@@ -81,9 +72,20 @@ func! s:cmd(...) abort
 endf
 
 func! s:clone(url)
-	" FIXME: Handle error
-	" Add: clone parser shell script at ~/dot/func:2
-	call system('git clone '.a:url.' '.g:projectexternaldir)
+	let [user, repo] = s:parseurlgit(a:url)
+	let targetdir = g:projectexternaldir.'/'.user
+	call mkdir(targetdir, 'p')
+	call s:info("cloning: ".user.'/'.repo.'...')
+	call system('git clone '.a:url.' '.targetdir)
+	call s:cd()
+endf
+
+func! s:parseurlgit(url)
+	let scheme = '^\(http[s]\?:\/\/\)'
+	let tilslash = '\([^/]*\)'
+	let regex = scheme.tilslash.'\/'.tilslash.'\/'.tilslash
+	let result = matchlist(a:url, regex)
+	return filter(result, 'v:val != ""')[3:]
 endf
 
 func! s:exists(name)
@@ -101,6 +103,7 @@ func! s:new(name, ...) " a:1 is templatekind
 		else
 			call s:info("Created project: ".s:expand(a:name))
 		end
+		call s:cd(a:name)
 	end
 endf
 
@@ -119,13 +122,13 @@ endf
 
 func! s:warn(msg)
 	echohl WarningMsg
-	echo a:msg
+	echo '[project.vim]: 'a:msg
 	echohl Reset
 endf
 
 func! s:info(msg)
 	echohl HelpType
-	echo a:msg
+	echo '[project.vim]: '.a:msg
 	echohl Reset
 endf
 
