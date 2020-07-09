@@ -2,14 +2,17 @@
 " Mail: ihsanl at pm dot me
 " Last Change: 2020 Jul 03 14:54:20, @1593777244
 
+" DONE: Open a project form URL.
+" (added at: @1594212351) (done at: @1594289682) (took: 21 hours)
+
 " Limitation1: user can't create a project named: "new"
-"
 " Fix for Limitation1:
 " TODO: Make first argument as a command and complete with other commands like
 " new,rename,cd,delete, check this link for argument specific completions:
 " https://stackoverflow.com/questions/6937984/is-there-a-way-to-make-use-of-two-custom-complete-functions-in-vimscript
 
-let g:projectdir = '~/project/'
+let g:projectdir = '~/project/' " FIXME: use get() function
+let g:projectexternaldir = '~/project/other/' " FIXME: use get() function
 
 " Add these too: [sh|py|c|cpp|rs|hs]
 let g:projecttemplate = {
@@ -17,61 +20,97 @@ let g:projecttemplate = {
 	\ 'rs': $pwd.'/templates/rust',
 \}
 
-func! s:usage()
+func! s:usage(cmd) " FIXME: add arg for command
 	call s:warn(':Project [new] <projectname> [template]')
 endf
 
-func! s:ProjectComplete(arglead,L,P)
-	return add(s:filter(systemlist('ls '.g:projectdir), a:arglead), 'new')
-endf
+let s:commands = {
+	\ 'cd': { 'funcref': function('s:cd'),
+		\ 'argcount': 1,
+		\ 'compfunc': 's:list',
+	\},
+	\ 'new': { 'funcref': function('s:new'),
+		\ 'argcount': 1,
+		\ 'compfunc': '',
+	\},
+	\ 'clone': { 'funcref': function('s:clone'),
+		\ 'argcount': 1,
+		\ 'compfunc': 's:compclone',
+	\},
+\}
 
-command! -nargs=* -complete=customlist,s:ProjectComplete Project
+func! s:complete(arg, line, pos)
+	let l = split(a:line[:a:pos-1], '\%(\%(\%(^\|[^\\]\)\\\)\@<!\s\)\+', 1)
+	let n = len(l) - index(l, 'Project') - 2
+	if n > 0
+		return call(s:commands[l[1]].compfunc, [a:arg, a:line, a:pos])
+	else
+		return call('s:compcmd', [a:arg, a:line, a:pos])
+	end
+endf
+func! s:compcmd(arg,line,pos)
+	return s:filter(keys(s:commands), a:arg)
+endf
+func! s:compclone(arg,line,pos)
+	" CONTRIBUTE: You can add git providers to this list:
+	let comp = [
+		\ 'https://github.com/',
+		\ 'https://gitlab.com/',
+	\]
+	return s:filter(comp, a:arg)
+endf
+func! s:list(arg,line,pos)
+	return s:filter(systemlist('ls '.g:projectdir), a:arg)
+endf
+command! -nargs=* -complete=customlist,s:complete Project
 		\ call s:cmd(<f-args>)
 
 func! s:cmd(...) abort
 	let args = copy(a:000)
-	if len(args) < 1
-		call s:usage() | return
+	if len(args) < 1 " no args
+		call s:usage() | return " FIXME: add arg for command
 	else
-		let l:projectname = args[0]
-		if l:projectname == 'new'
-			if len(args) < 2
-				call s:usage() | return
-			else
-				let l:projectname = args[1]
-				call s:projectnew(l:projectname)
-			end
-		end
-		if s:projectexists(l:projectname)
-			call s:projectcd(l:projectname)
+		let cmd = args[0]
+		if len(args) < s:commands[cmd].argcount + 1 " FIXME
+			call s:usage(cmd) | return
 		else
-			call s:warn(
-				\ 'project: no such project: '.l:projectname.'. try creating new.')
+			" FIXME: give an arglist as required (argcount) instead of one arg
+			call s:commands[cmd].funcref(args[1])
 		end
 	end
 endf
 
-func! s:projectexists(projectname)
-	return isdirectory(s:projectexpand(a:projectname))
+func! s:clone(url)
+	" FIXME: Handle error
+	" Add: clone parser shell script at ~/dot/func:2
+	call system('git clone '.a:url.' '.g:projectexternaldir)
 endf
 
-func! s:projectnew(projectname, ...) " a:1 is templatekind
-	call mkdir(s:projectexpand(a:projectname), 'p')
-	if a:0 > 0 " and exists in template dictionary :TODO
-		system('cp -r '.g:projecttemplate[a:1].'/ '.s:projectexpand(a:projectname))
-		call s:info('Created project from '.a:1.' template: '.a:projectname)
+func! s:exists(name)
+	return isdirectory(s:expand(a:name))
+endf
+
+func! s:new(name, ...) " a:1 is templatekind
+	if s:exists(a:name)
+		call s:warn('project already exists: '. a:name) " FIXME: use my error handler plugin
 	else
-		call s:info("Created project: ".s:projectexpand(a:projectname))
+		call mkdir(s:expand(a:name), 'p')
+		if a:0 > 0 " TODO: and exists in template dictionary
+			system('cp -r '.g:projecttemplate[a:1].'/ '.s:expand(a:name))
+			call s:info('Created project from '.a:1.' template: '.a:name)
+		else
+			call s:info("Created project: ".s:expand(a:name))
+		end
 	end
 endf
 
-func! s:projectcd(projectname)
-	exe 'tcd '.s:projectexpand(a:projectname)
+func! s:cd(name)
+	exe 'tcd '.s:expand(a:name)
 	call s:info("pwd: ".getcwd())
 endf
 
-func! s:projectexpand(projectname)
-	return expand(g:projectdir.a:projectname)
+func! s:expand(name)
+	return expand(g:projectdir.a:name)
 endf
 
 func! s:filter(candidates, arglead)
