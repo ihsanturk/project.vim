@@ -15,6 +15,35 @@ func! s:usage(cmd) " FIXME: add arg for command
 	call s:warn(':Project [new] <projectname> [template]')
 endf
 
+func! s:cd(name)
+	exe 'tcd '.s:expand(a:name)
+	call s:info("pwd: ".getcwd())
+endf
+
+func! s:new(name, ...) " a:1 is templatekind
+	if s:exists(a:name)
+		call s:warn('project already exists: '. a:name) " FIXME: use my error handler plugin
+	else
+		call mkdir(s:expand(a:name), 'p')
+		if a:0 > 0 " TODO: and exists in template dictionary
+			system('cp -r '.g:projecttemplate[a:1].'/ '.s:expand(a:name))
+			call s:info('Created project from '.a:1.' template: '.a:name)
+		else
+			call s:info("Created project: ".s:expand(a:name))
+		end
+		call s:cd(a:name)
+	end
+endf
+
+func! s:clone(url)
+	let [user, repo] = s:parseurlgit(a:url)
+	let targetdir = g:projectexternaldir.'/'.user
+	call mkdir(targetdir, 'p')
+	call s:info("cloning: ".user.'/'.repo.'...')
+	call system('git clone '.a:url.' '.targetdir)
+	call s:cd()
+endf
+
 let s:commands = {
 	\ 'cd': { 'funcref': function('s:cd'),
 		\ 'argcount': 1,
@@ -71,15 +100,6 @@ func! s:cmd(...) abort
 	end
 endf
 
-func! s:clone(url)
-	let [user, repo] = s:parseurlgit(a:url)
-	let targetdir = g:projectexternaldir.'/'.user
-	call mkdir(targetdir, 'p')
-	call s:info("cloning: ".user.'/'.repo.'...')
-	call system('git clone '.a:url.' '.targetdir)
-	call s:cd()
-endf
-
 func! s:parseurlgit(url)
 	let scheme = '^\(http[s]\?:\/\/\)'
 	let tilslash = '\([^/]*\)'
@@ -90,26 +110,6 @@ endf
 
 func! s:exists(name)
 	return isdirectory(s:expand(a:name))
-endf
-
-func! s:new(name, ...) " a:1 is templatekind
-	if s:exists(a:name)
-		call s:warn('project already exists: '. a:name) " FIXME: use my error handler plugin
-	else
-		call mkdir(s:expand(a:name), 'p')
-		if a:0 > 0 " TODO: and exists in template dictionary
-			system('cp -r '.g:projecttemplate[a:1].'/ '.s:expand(a:name))
-			call s:info('Created project from '.a:1.' template: '.a:name)
-		else
-			call s:info("Created project: ".s:expand(a:name))
-		end
-		call s:cd(a:name)
-	end
-endf
-
-func! s:cd(name)
-	exe 'tcd '.s:expand(a:name)
-	call s:info("pwd: ".getcwd())
 endf
 
 func! s:expand(name)
@@ -131,4 +131,3 @@ func! s:info(msg)
 	echo '[project.vim]: '.a:msg
 	echohl Reset
 endf
-
