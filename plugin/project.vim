@@ -40,11 +40,15 @@ endf
 
 func! s:clone(url)
 	let [user, repo] = s:parseurlgit(a:url)
-	let targetdir = g:projectexternaldir.'/'.user
+	let targetdir = g:projectexternaldir.user.'/'.repo
 	call mkdir(targetdir, 'p')
+	let targetdir = expand(targetdir)
 	call s:info("cloning: ".user.'/'.repo.'...')
-	call system('git clone '.a:url.' '.targetdir)
-	call s:cd()
+	let gitoutput = system('git clone '.a:url.' '.targetdir)
+	if v:shell_error
+		call s:warn(gitoutput)
+	end
+	exe 'tcd '.targetdir
 endf
 
 let s:commands = {
