@@ -1,9 +1,9 @@
-"              ╭──────────────────────────────────────────────╮
-"              Maintainer:  ihsan                             │
-"              Description: Manage projects                   │
-"              Email:       ihsanl at pm dot me               │
-"              Last Change: 2020 Jul 09 16:29:35, @1594301382 │
-"              ╰──────────────────────────────────────────────╯
+"            ╭────────────────────project.vim───────────────────╮
+"            Maintainer:  ihsan, ihsanl[at]pm[dot]me            │
+"            Description: Manage projects                       │
+"            Last Change: 2020 Jul 09 16:29:35 +03, @1594301382 │
+"            License:     MIT                                   │
+"            ╰──────────────────────────────────────────────────╯
 
 let g:projectdir = '~/project/' " FIXME: use get() function
 let g:projectexternaldir = '~/project/other/' " FIXME: use get() function
