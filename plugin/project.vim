@@ -1,6 +1,9 @@
-" Maintainer: ihsan
-" Mail: ihsanl at pm dot me
-" Last Change: 2020 Jul 09 16:29:35, @1594301382
+"              ╭──────────────────────────────────────────────╮
+"              Maintainer:  ihsan                             │
+"              Description: Manage projects                   │
+"              Email:       ihsanl at pm dot me               │
+"              Last Change: 2020 Jul 09 16:29:35, @1594301382 │
+"              ╰──────────────────────────────────────────────╯
 
 let g:projectdir = '~/project/' " FIXME: use get() function
 let g:projectexternaldir = '~/project/other/' " FIXME: use get() function
