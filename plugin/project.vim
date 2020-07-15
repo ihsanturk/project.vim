@@ -30,7 +30,7 @@ let g:orrer#dict = {
 
 " vars
 let g:projectdir = get(g:, 'projectdir', '~/project/')
-let g:neuron_no_mappings  = get(g:, 'neuron_no_mappings', 0)
+let g:project_no_mappings  = get(g:, 'project_no_mappings', 0)
 
 " functions
 " TODO: Show only project name not full path in fzf.
