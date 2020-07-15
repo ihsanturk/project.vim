@@ -21,7 +21,8 @@ Hit `gpp` to pick from your projects in an fzf prompt to quickly ~`cd`~ `tcd`
 into there. (This changes the working directory only for current tab. So you
 can have different root directories in different tabs.)
 
-## Disable Mappings
+## Customize Mappings
 ```vim
 let g:project_no_mappings = 1
+nm <leader>p <Plug>ProjectSelect
 ```
